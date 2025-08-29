@@ -27,7 +27,7 @@ int sv_eq_cmp(String_View key1, String_View key2) {
 #define KEY_TYPE String_View
 #define VAL_TYPE int
 #define HASH(key) hash(key)
-#define EQ(key1, key2) sv_eq_cmp(key1, key2)
+#define CMP(key1, key2) sv_eq_cmp(key1, key2)
 #include "ht.h"
 
 int compar(const void* a, const void* b) {

@@ -51,7 +51,7 @@ KV* ht_update(HT* ht, KEY_TYPE key);
 KV* ht_find(HT ht, KEY_TYPE key);
 
 // deletes key-value pair with corresponding key.
-void ht_delete(HT ht, KEY_TYPE key);
+void ht_delete(HT* ht, KEY_TYPE key);
 
 
 // internal function, should not be used,
@@ -85,7 +85,7 @@ void ht_insert(HT* ht, KEY_TYPE key, VAL_TYPE val) {
 
   uint64_t h = HASH(key) % ht->capacity;
 
-  while(ht->items[h].occupied && EQ(ht->items[h].key, key) == 0) h = (h + 1) % ht->capacity;
+  while(ht->items[h].occupied && CMP(ht->items[h].key, key) == 0) h = (h + 1) % ht->capacity;
 
   if(!ht->items[h].occupied) ht->items[h].key = key;
   ht->items[h].occupied = 1;
@@ -105,7 +105,7 @@ KV* ht_update(HT* ht, KEY_TYPE key) {
       ht->count++;
       return &ht->items[h];
     }
-    if(EQ(ht->items[h].key, key) == 0) return &ht->items[h];
+    if(CMP(ht->items[h].key, key) == 0) return &ht->items[h];
     h = (h + 1) % ht->capacity;
   }
 
@@ -117,7 +117,7 @@ KV* ht_find(HT ht, KEY_TYPE key) {
 
   for(size_t i = 0; i < ht.capacity; i++) {
     if(!ht.items[h].occupied) break;
-    if(EQ(ht.items[h].key, key) == 0) return &ht.items[h];
+    if(CMP(ht.items[h].key, key) == 0) return &ht.items[h];
     h = (h + 1) % ht.capacity;
   }
 
@@ -125,7 +125,7 @@ KV* ht_find(HT ht, KEY_TYPE key) {
 }
 
 void ht_delete(HT* ht, KEY_TYPE key) {
-  KV* kv = ht_find(ht, key);
+  KV* kv = ht_find(*ht, key);
   kv->occupied = 0;
   ht->count--;
 
@@ -147,7 +147,7 @@ void __ht_realloc(HT *ht, size_t s) {
     if(old_items[i].occupied) {
       uint64_t h = HASH(old_items[i].key) % ht->capacity;
 
-      while(ht->items[h].occupied && EQ(ht->items[h].key, old_items[i].key) == 0) h++;
+      while(ht->items[h].occupied && CMP(ht->items[h].key, old_items[i].key) == 0) h++;
 
       ht->items[h].occupied = 1;
       ht->items[h].key = old_items[i].key;
