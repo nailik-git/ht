@@ -25,6 +25,11 @@ static_assert(0, "HASH not defined, expected function signature: uint64_t (*)(KE
 static_assert(0, "CMP not defined, expected function signature: int (*)(KEY_TYPE, KEY_TYPE)");
 #endif
 
+// population factor
+#ifndef POP
+#define POP 0.75
+#endif
+
 // -------------------------------------------------
 // --------------- type declarations ---------------
 // -------------------------------------------------
@@ -98,7 +103,7 @@ void ht_deinit(HT ht) {
 }
 
 void ht_insert(HT* ht, KEY_TYPE key, VAL_TYPE val) {
-  if(ht->count == ht->capacity) __ht_realloc(ht, ht->capacity * 2);
+  if(ht->count >= ht->capacity * POP) __ht_realloc(ht, ht->capacity * 2);
 
   uint64_t h = HASH(key) % ht->capacity;
 
@@ -111,7 +116,7 @@ void ht_insert(HT* ht, KEY_TYPE key, VAL_TYPE val) {
 }
 
 KV* ht_update(HT* ht, KEY_TYPE key) {
-  if(ht->count == ht->capacity) __ht_realloc(ht, ht->capacity * 2);
+  if(ht->count >= ht->capacity * POP) __ht_realloc(ht, ht->capacity * 2);
 
   uint64_t h = HASH(key) % ht->capacity;
 
@@ -146,7 +151,7 @@ void ht_delete(HT* ht, KEY_TYPE key) {
   kv->occupied = 0;
   ht->count--;
 
-  if(ht->count < (ht->capacity / 2) - (ht->capacity / 2 / 10)) {
+  if(ht->count < ht->capacity / 2 * POP) {
     __ht_realloc(ht, ht->capacity / 2);
   }
 }
