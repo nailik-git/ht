@@ -8,6 +8,23 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef KEY_TYPE
+static_assert(0, "KEY_TYPE not defined");
+#endif
+
+#ifndef VAL_TYPE
+static_assert(0, "VAL_TYPE not defined");
+#endif
+
+#ifndef HASH
+static_assert(0, "HASH not defined, expected function signature: uint64_t (*)(KEY_TYPE)");
+#endif
+
+// CMP should return 0 if the keys are equal
+#ifndef CMP
+static_assert(0, "CMP not defined, expected function signature: int (*)(KEY_TYPE, KEY_TYPE)");
+#endif
+
 // -------------------------------------------------
 // --------------- type declarations ---------------
 // -------------------------------------------------
