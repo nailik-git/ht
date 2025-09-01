@@ -5,4 +5,7 @@ KEY_TYPE, VAL_TYPE, HASH(key), CMP(key1, key2) and include the library and you'r
 if you need the declarations elsewhere, but not the implementation, you can define HT_NO_IMPLEMENTATION
 
 for further usage, there are comments describing the behaviour of the functions in [the header](ht.h)
-and you can look into [the example](example.c)
+and you can look into [the example](example1.c)
+
+you can also use this library multiple times in the same project with different types, to see how that
+works, look into [the other example](example2.c)

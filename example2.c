@@ -30,9 +30,28 @@ int sv_eq_cmp(String_View key1, String_View key2) {
 #define CMP(key1, key2) sv_eq_cmp(key1, key2)
 #include "ht.h"
 
+#undef HT_H
+#undef KEY_TYPE
+#undef VAL_TYPE
+#undef HASH
+#undef CMP
+#define PREFIX char
+#define KEY_TYPE char
+#define VAL_TYPE int
+#define HASH(key) key
+#define CMP(key1, key2) key1 - key2
+#include "ht.h"
+
 int compar(const void* a, const void* b) {
   const KV* kv1 = (KV*) a;
   const KV* kv2 = (KV*) b;
+
+  return kv2->val - kv1->val;
+}
+
+int char_compar(const void* a, const void* b) {
+  const char_KV* kv1 = (char_KV*) a;
+  const char_KV* kv2 = (char_KV*) b;
 
   return kv2->val - kv1->val;
 }
@@ -61,11 +80,14 @@ int main() {
   String_Builder sb = {0};
   String_View sv = {0};
   String_View key = {0};
+  String_View csv = {0};
 
   HT ht = ht_init(1000);
+  char_HT cht = char_ht_init(256);
 
   read_entire_file("test.txt", &sb);
   sv = sb_to_sv(sb);
+  csv = sb_to_sv(sb);
 
   while(sv.count) {
     sv = sv_trim_left(sv);
@@ -75,14 +97,26 @@ int main() {
     kv->val++;
   }
 
-  qsort(ht.items, ht.capacity, sizeof(KV), compar);
+  while(csv.count) {
+    char_KV* kv = char_ht_update(&cht, *csv.data++);
+    kv->val++;
+    csv.count--;
+  }
 
-  printf("Top 10 Tokens:\n");
+  qsort(ht.items, ht.capacity, sizeof(KV), compar);
+  qsort(cht.items, cht.capacity, sizeof(char_KV), char_compar);
+
+  printf("Top 10 tokens:\n");
   for(int i = 0; i < 10; i++) {
     printf("  %.*s: %d\n", (int) ht.items[i].key.count, ht.items[i].key.data, ht.items[i].val);
+  }
+  printf("Top 10 characters:\n");
+  for(int i = 0; i < 10; i++) {
+    printf("  %c: %d\n", (int) cht.items[i].key, cht.items[i].val);
   }
 
   sb_free(sb);
   ht_deinit(ht);
+  char_ht_deinit(cht);
   return 0;
 }
