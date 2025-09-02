@@ -110,17 +110,37 @@ KEY_VALUE* HT_FIND(HASH_TABLE ht, KEY_TYPE key);
 // deletes key-value pair with corresponding key.
 void HT_DELETE(HASH_TABLE* ht, KEY_TYPE key);
 
-
-// internal function, should not be used,
-// changes the size of ht, according to s,
-// re-inserts all items.
-void __HT_REALLOC(HASH_TABLE* ht, size_t s);
-
 // -------------------------------------------------
 // ------------ function implementation ------------
 // -------------------------------------------------
 
 #ifndef HT_NO_IMPLEMENTATION
+
+void __HT_REALLOC(HASH_TABLE *ht, size_t s) {
+#ifdef NO_RESIZE
+  fprintf(stderr, "ERROR: hashtable full\n");
+  exit(1);
+#else // NO_RESIZE
+  KEY_VALUE* old_items = ht->items;
+  size_t old_capacity = ht->capacity;
+  ht->items = calloc(s, sizeof(KEY_VALUE));
+  ht->capacity = s;
+  for(size_t i = 0; i < old_capacity; i++) {
+    if(old_items[i].occupied) {
+      uint64_t h = HASH(old_items[i].key) % ht->capacity;
+
+      while(ht->items[h].occupied && CMP(ht->items[h].key, old_items[i].key) == 0) h++;
+
+      ht->items[h].occupied = 1;
+      ht->items[h].key = old_items[i].key;
+      ht->items[h].val = old_items[i].val;
+    }
+  }
+
+  free(old_items);
+#endif // NO_RESIZE
+}
+
 
 HASH_TABLE HT_INIT(size_t initial_size) {
   HASH_TABLE ht = {0};
@@ -189,31 +209,6 @@ void HT_DELETE(HASH_TABLE* ht, KEY_TYPE key) {
   if(ht->count < ht->capacity / 2 * POP) {
     __HT_REALLOC(ht, ht->capacity / 2);
   }
-}
-
-void __HT_REALLOC(HASH_TABLE *ht, size_t s) {
-#ifdef NO_RESIZE
-  fprintf(stderr, "ERROR: hashtable full\n");
-  exit(1);
-#else // NO_RESIZE
-  KEY_VALUE* old_items = ht->items;
-  size_t old_capacity = ht->capacity;
-  ht->items = calloc(s, sizeof(KEY_VALUE));
-  ht->capacity = s;
-  for(size_t i = 0; i < old_capacity; i++) {
-    if(old_items[i].occupied) {
-      uint64_t h = HASH(old_items[i].key) % ht->capacity;
-
-      while(ht->items[h].occupied && CMP(ht->items[h].key, old_items[i].key) == 0) h++;
-
-      ht->items[h].occupied = 1;
-      ht->items[h].key = old_items[i].key;
-      ht->items[h].val = old_items[i].val;
-    }
-  }
-
-  free(old_items);
-#endif // NO_RESIZE
 }
 
 #endif // HT_NO_IMPLEMENTATION
